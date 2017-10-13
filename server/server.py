@@ -8,11 +8,12 @@ import sys
 from tornado.options import define, options
 from datetime import datetime, timedelta
 
-allnames = [];
-idToName = {};
-DBPATH = "/home/ubuntu/data.db"
-STATICPATH = "/home/ubuntu/pointcontrol/server/static"
-APIKEY = open("/home/ubuntu/pointcontrol/apikey.txt", "r").read().strip()
+allnames = []
+idToName = {}
+BASE_PATH = ".."
+DBPATH = BASE_PATH + "/data.db"
+STATICPATH = BASE_PATH + "/server/static"
+APIKEY = open(BASE_PATH + "/apikey.txt", "r").read().strip()
 
 def _execute(query, args):
         dbPath = DBPATH

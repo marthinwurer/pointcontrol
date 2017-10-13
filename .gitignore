@@ -1,2 +1,5 @@
 notebooks/.ipynb_checkpoints/
 apikey.txt
+.idea/
+venv/
+*.db

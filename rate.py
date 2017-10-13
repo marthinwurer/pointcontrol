@@ -22,9 +22,9 @@ c = conn.cursor()
 
 end_date = datetime.strptime(args.end_date, '%Y-%m-%d')
 
-if args.begin_date != None:
+if args.begin_date is not None:
   begin_date = datetime.strptime(args.begin_date, '%Y-%m-%d')
-elif args.scrape_lookback != None:
+elif args.scrape_lookback is not None:
   begin_date = datetime.now() - timedelta(days=int(args.scrape_lookback))
 
 trueskill.setup(draw_probability=0.0018469)
