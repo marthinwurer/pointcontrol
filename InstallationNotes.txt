@@ -1,0 +1,13 @@
+sudo apt install python htop python-pip sqlite3 authbind[
+pip install tornado
+sudo pip install requests
+change the db directory in the server
+
+ubuntu@ip-172-31-23-43:~/pointcontrol/server$ sudo touch /etc/authbind/byport/80                     
+ubuntu@ip-172-31-23-43:~/pointcontrol/server$ sudo chown ubuntu:ubuntu /etc/authbind/byport/80       
+ubuntu@ip-172-31-23-43:~/pointcontrol/server$ sudo chmod 755 /etc/authbind/byport/80
+ubuntu@ip-172-31-23-43:~/pointcontrol/server$ authbind python server.py 80                           
+
+0 2 * * * ~/pointcontrol/dailyjob.sh 7
+
+Missing between 149646 and 149389
