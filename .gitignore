@@ -3,3 +3,5 @@ apikey.txt
 .idea/
 venv/
 *.db
+*.swp
+*.pyc
