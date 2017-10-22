@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 
 allnames = []
 idToName = {}
-BASE_PATH = ".."
-DBPATH = BASE_PATH + "/data.db"
+BASE_PATH = "/home/ubuntu/pointcontrol/"
+DBPATH = BASE_PATH + "/../data.db"
 STATICPATH = BASE_PATH + "/server/static"
 APIKEY = open(BASE_PATH + "/apikey.txt", "r").read().strip()
 
@@ -79,18 +79,6 @@ def matches(query):
 class Main(tornado.web.RequestHandler):
     def get(self):
         self.render("main.html")
-"""
-class AddStudent(tornado.web.RequestHandler):
-    def get(self):
-        self.render('sqliteform.html')
-
-    def post(self):
-        marks = int(self.get_argument("marks"))
-        name = self.get_argument("name")
-        query = ''' insert into stud (name, marks) values ('%s', %d) ''' %(name, marks);
-        _execute(query)
-        self.render('success.html')
-"""
 
 class RateEventPage(tornado.web.RequestHandler):
     def get(self):
@@ -276,8 +264,10 @@ application = tornado.web.Application([
     (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": STATICPATH}),
     (r"/favicon.ico", IconHandler),
 ],debug=False)
+
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     loadNames();
     application.listen(sys.argv[1])
     tornado.ioloop.IOLoop.instance().start()
+
