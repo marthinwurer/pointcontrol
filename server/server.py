@@ -10,10 +10,10 @@ from datetime import datetime, timedelta
 
 allnames = []
 idToName = {}
-BASE_PATH = "/home/ubuntu/pointcontrol/"
-# BASE_PATH = "./"
-DBPATH = BASE_PATH + "/../data.db"
-# DBPATH = BASE_PATH + "/data.db"
+# BASE_PATH = "/home/ubuntu/pointcontrol/"
+BASE_PATH = "./"
+# DBPATH = BASE_PATH + "/../data.db"
+DBPATH = BASE_PATH + "/data.db"
 STATICPATH = BASE_PATH + "/server/static"
 APIKEY = open(BASE_PATH + "/apikey.txt", "r").read().strip()
 
@@ -243,9 +243,10 @@ class RateEvent(tornado.web.RequestHandler):
                     lr = getLatestRating(r[3], weapon)
                     datapoints += [{"name" : r[1] + " " + r[2], 
                                     "birthyear" : r[4], 
-                                    "rating" : lr[0] if lr else None
+                                    "rating" : format(lr[0], ".2f") if lr else "???",
+                                    "data_rating" : lr[0] if lr else None
                                   }]
-                datapoints = sorted(datapoints, key = lambda x: x["rating"], reverse=True)
+                datapoints = sorted(datapoints, key = lambda x: x["data_rating"], reverse=True)
         self.write(json.dumps(datapoints))
        
 class IconHandler(tornado.web.RequestHandler):
