@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 allnames = []
 idToName = {}
 BASE_PATH = "/home/ubuntu/pointcontrol/"
+# BASE_PATH = "./"
 DBPATH = BASE_PATH + "/../data.db"
+# DBPATH = BASE_PATH + "/data.db"
 STATICPATH = BASE_PATH + "/server/static"
 APIKEY = open(BASE_PATH + "/apikey.txt", "r").read().strip()
 
@@ -49,7 +51,7 @@ def loadNames():
         idToName[a[3]] = a[1] + " " + a[2]
 
 def getLatestRating(fencerid, weapon):
-  getLatestRatingAsOf(fencerid, weapon, datetime.now().isoformat().split("T")[0])
+  return getLatestRatingAsOf(fencerid, weapon, datetime.now().isoformat().split("T")[0])
 
 def getLatestRatingAsOf(fencerid, weapon, asof):
   query = ''' select r.ts_mu, t.start_date
