@@ -10,10 +10,10 @@ from datetime import datetime, timedelta
 
 allnames = []
 idToName = {}
-# BASE_PATH = "/home/ubuntu/pointcontrol/"
-BASE_PATH = "./"
-# DBPATH = BASE_PATH + "/../data.db"
-DBPATH = BASE_PATH + "/data.db"
+BASE_PATH = "/home/ubuntu/pointcontrol/"
+# BASE_PATH = "./"
+DBPATH = BASE_PATH + "/../data.db"
+# DBPATH = BASE_PATH + "/data.db"
 STATICPATH = BASE_PATH + "/server/static"
 APIKEY = open(BASE_PATH + "/apikey.txt", "r").read().strip()
 
