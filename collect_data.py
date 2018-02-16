@@ -4,6 +4,8 @@ import requests
 import argparse
 import sqlite3
 from datetime import datetime, timedelta
+import logging
+
 
 # Global vars
 API_KEY = ""
@@ -18,12 +20,24 @@ def isStringInt(s):
     except ValueError:
         return False
 
+def get_tournament_events(event_id):
+    payload = {"_api_key" : API_KEY,
+               "_per_page" : "100", # won't be more than 100 events in a tournament right?
+               "event_id" : event_id,
+               }
+    r = requests.get("https://api.askfred.net/v1/roundresult", params=payload)
+    if r.status_code == 500:
+        raise IOError ("Request failed with code 500. Payload: " + "https://api.askfred.net/v1/roundresult" + str(payload))
+    return r.json()
+
+
 def parseEvent(event_id):
     def parsePool(pool):
         #TODO: merge duplicate code with parseDE
         try:
             bouts = pool["bouts"]
         except:
+            logging.exception("pool parse failed %s", pool)
             return
         for bout in bouts:
             if "fencers" not in bout:
@@ -54,6 +68,7 @@ def parseEvent(event_id):
         try:
             bouts = de_table["bouts"]
         except:
+            logging.exception("de parse failed %s", de_table)
             return
         for bout in bouts:
             if "fencers" not in bout:
@@ -80,16 +95,8 @@ def parseEvent(event_id):
                                     "type" : "de",
                                 })
 
-    payload = {"_api_key" : API_KEY,
-               "_per_page" : "100", # won't be more than 100 events in a tournament right?
-               "event_id" : event_id,
-               }
-    r = requests.get("https://api.askfred.net/v1/roundresult", params=payload)
-    if r.status_code == 500:
-        print "Request failed with code 500. Payload: " + "https://api.askfred.net/v1/roundresult" + str(payload)
-        return
 
-    event_results = r.json()
+    event_results = get_tournament_events(event_id)
     if int(event_results["total_matched"]) > 100:
         raise Exception("more than 100 roundresult with same id, wtf. event_id = " + event_id)
     rnds = event_results["rounds"]
@@ -122,31 +129,36 @@ def scrapeResults(begin_date, end_date):
         rjson = r.json()
 
         for tournament in rjson["tournaments"]:
-            print "parsing " + str(tournament["id"])
-            if SHALLOW_SCRAPE and db.execute("SELECT * FROM tournaments WHERE tournamentid = " + str(tournament["id"])).fetchone():
-                continue
-            print tournament
-            print tournament["start_date"]
-            sql_insert = "INSERT OR IGNORE INTO tournaments (tournamentid, start_date) VALUES (%(tid)s, '%(sd)s');" % {"tid" : tournament["id"], "sd" : tournament["start_date"]}
-            db.execute(sql_insert)
-            if "events" not in tournament:
-                continue
-            for event in tournament["events"]:
-                db.execute("""INSERT OR IGNORE INTO events
-          (eventid, tournamentid, weapon)
-          VALUES
-          (%(eventid)s, %(tournamentid)s, '%(weapon)s')""" % {
-                    "eventid" : event["id"],
-                    "tournamentid" : event["tournament_id"],
-                    "weapon" : event["weapon"],
-                })
-                try:
-                    parseEvent(event["id"])
-                except:
-                    time.sleep(10)
-                    parseEvent(event["id"])
-            conn.commit()
-            time.sleep(10)
+            try:
+                logging.info("parsing " + str(tournament["id"]))
+                if SHALLOW_SCRAPE and db.execute("SELECT * FROM tournaments WHERE tournamentid = " + str(tournament["id"])).fetchone():
+                    continue
+                logging.debug( tournament )
+                logging.debug(tournament["start_date"] )
+                sql_insert = "INSERT OR IGNORE INTO tournaments (tournamentid, start_date) VALUES (%(tid)s, '%(sd)s');" % {"tid" : tournament["id"], "sd" : tournament["start_date"]}
+                db.execute(sql_insert)
+                if "events" not in tournament:
+                    continue
+                for event in tournament["events"]:
+                    db.execute("""INSERT OR IGNORE INTO events
+                          (eventid, tournamentid, weapon)
+                          VALUES
+                          (%(eventid)s, %(tournamentid)s, '%(weapon)s')""" % {
+                        "eventid" : event["id"],
+                        "tournamentid" : event["tournament_id"],
+                        "weapon" : event["weapon"],
+                    })
+                    try:
+                        parseEvent(event["id"])
+                    except Exception as e:
+                        logging.exception("First parsing failed for event %s", event["id"])
+                        time.sleep(10)
+                        parseEvent(event["id"])
+                conn.commit()
+            except Exception as e:
+                logging.exception("Scrape failed for tournament id %s", tournament["id"])
+            finally:
+                time.sleep(10)
 
 
         if i * batch_num >= int(rjson["total_matched"]):
@@ -196,7 +208,7 @@ def scrapePromotions(begin_date, end_date):
                     "bletter" : result["rating_before_letter"],
                     "byear" : result["rating_before_year"] if "rating_before_year" in result else "NULL",
                 })
-                print result["competitor_id"], result["weapon"], result["rating_Earned_letter"], result["tournament_start_date"]
+                logging.info("%s %s %s %s", result["competitor_id"], result["weapon"], result["rating_Earned_letter"], result["tournament_start_date"])
         conn.commit()
         if i * batch_num >= int(rjson["total_matched"]):
             break
@@ -231,7 +243,7 @@ def scrapeAllFencers(begin_fencerid=0):
                 "uid" : result["usfa_id"] if (result["usfa_id"] != "" and isStringInt(result["usfa_id"]) ) else "NULL",
                 "g" : result["gender"],
             })
-            print sqlcmd
+            logging.debug(sqlcmd)
             db.execute(sqlcmd)
             current_fencerid = int(result["id"])
 
@@ -246,11 +258,16 @@ def scrapeAllFencers(begin_fencerid=0):
     return
 
 def scrapeAllFencersUpdate():
-    print db.execute("SELECT MAX(fencerid) FROM fencers").fetchone()
+
+
+
+    logging.debug(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone())
     maxfencerid = int(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone()[0])
     scrapeAllFencers(maxfencerid)
 
-if __name__ == "__main__":
+def main():
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', filename='collect.log', level=logging.DEBUG)
+
     parser = argparse.ArgumentParser(description='Collects Askfred bout data')
     parser.add_argument("-k", action="store", dest="API_KEY", default="",
                         help="Askfred REST API key")
@@ -274,6 +291,10 @@ if __name__ == "__main__":
                         help="Do not scrape tournament events if tournament_id already in db")
     args = parser.parse_args()
 
+    global API_KEY
+    global SHALLOW_SCRAPE
+    global conn
+    global db
     API_KEY = args.API_KEY
     SHALLOW_SCRAPE = args.SHALLOW_SCRAPE
     conn = sqlite3.connect(args.db, timeout=20)
@@ -290,7 +311,7 @@ if __name__ == "__main__":
     elif args.scrape_lookback is not None:
         begin_date = datetime.now() - timedelta(days=int(args.scrape_lookback))
 
-    print begin_date, end_date
+    logging.info("Begin date: %s  End date: %s", begin_date, end_date)
 
     if args.scrape_results:
         scrapeResults(begin_date, end_date)
@@ -303,6 +324,10 @@ if __name__ == "__main__":
 
     conn.commit()
     conn.close()
+
+
+if __name__ == "__main__":
+    main()
 
 
 #parseEvent(118025)
