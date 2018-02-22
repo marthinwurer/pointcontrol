@@ -11,3 +11,6 @@ ubuntu@ip-172-31-23-43:~/pointcontrol/server$ authbind python server.py 80
 0 2 * * * ~/pointcontrol/dailyjob.sh 7
 
 Missing between 149646 and 149389
+
+
+0 6 * * * cd ~ && ~/pointcontrol/dailyjob.sh 7 >> daily.log 2>&1
