@@ -77,7 +77,7 @@ def updateRank(bout):
   oldp1 = trueskill.Rating(oldp1[0], oldp1[1])
   oldp2 = getLatestRating(fencer2id, weapon)
   oldp2 = trueskill.Rating(oldp2[0], oldp2[1])
-  print oldp1, oldp2
+  print (oldp1, oldp2)
 
   if de_or_pool == "pool":
     if score1 > score2:
@@ -100,7 +100,7 @@ def updateRank(bout):
 
   updateLatestRating(fencer1id, weapon, boutid, p1, oldp1)
   updateLatestRating(fencer2id, weapon, boutid, p2, oldp2)
-  print p1, p2
+  print (p1, p2)
 
 
 
@@ -129,6 +129,6 @@ rows = c_bouts.execute("""
     })
 
 for row in rows:
-  print row
+  print (row)
   updateRank(row)
 conn.commit()

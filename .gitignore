@@ -5,3 +5,5 @@ venv/
 *.db
 *.swp
 *.pyc
+*.log
+to_verify.txt
