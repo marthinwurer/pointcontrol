@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 
 allnames = []
 idToName = {}
-BASE_PATH = "/home/ubuntu/pointcontrol/"
-# BASE_PATH = "./"
-DBPATH = BASE_PATH + "/../data.db"
-# DBPATH = BASE_PATH + "/data.db"
-STATICPATH = BASE_PATH + "/server/static"
+# BASE_PATH = "/home/ubuntu/pointcontrol/"
+BASE_PATH = "./"
+# DBPATH = BASE_PATH + "/../data.db"
+DBPATH = BASE_PATH + "/data.db"
+STATICPATH = BASE_PATH + "/server/static/"
 APIKEY = open(BASE_PATH + "/apikey.txt", "r").read().strip()
 
 def _execute(query, args):
@@ -252,7 +252,7 @@ class RateEvent(tornado.web.RequestHandler):
 class IconHandler(tornado.web.RequestHandler):
     def get(self):
         self.set_header("Content-Type", "image/vnd.microsoft.icon")
-        with open("favicon.ico", 'rb') as f:
+        with open(STATICPATH + "favicon.ico", 'rb') as f:
             self.write(f.read())
         return self.flush() 
      
@@ -270,7 +270,7 @@ application = tornado.web.Application([
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
-    loadNames();
+    loadNames()
     application.listen(sys.argv[1])
     tornado.ioloop.IOLoop.instance().start()
 

@@ -211,6 +211,7 @@ $( document ).ready(function() {
   });
 });
 $( "#fencerform" ).submit(function( event ) {
+  console.log(event);
   value_string = $('#fenceridinput').val();
   if (!isNaN(value_string)) {
     getData(parseInt(value_string));
