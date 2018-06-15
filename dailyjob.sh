@@ -1,8 +1,12 @@
 #!/bin/bash
 
 LOOKBACK=$1
+export PATH=~/.pyenv/shims:~/.pyenv/bin:"$PATH"
 date -u >> update_times.log
 date -u >> errors.log
+echo $USER >> errors.log
+eval "$(pyenv init -)" &>> errors.log
+pyenv shell pointcontrol &>> errors.log
 python collect_data.py -d data.db --scrape-results --days $LOOKBACK -k $(cat apikey.txt) &>> errors.log;
 python collect_data.py -d data.db --scrape-promotions --days $LOOKBACK -k $(cat apikey.txt) &>> errors.log;
 python collect_data.py -d data.db --scrape-fencer-update -k $(cat apikey.txt);
