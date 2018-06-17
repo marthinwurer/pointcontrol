@@ -184,7 +184,7 @@ def scrapePromotions(begin_date, end_date):
         (fencerid, eventid, weapon, tournamentid, entries, place, start_date)
         VALUES
         (%(f)s, %(e)s, '%(w)s', %(t)s, %(entries)s, %(place)s, '%(start_date)s')
-      """ % {
+        """ % {
                 "f" : result["competitor_id"],
                 "e" : result["event_id"],
                 "w" : result["weapon"],
@@ -235,7 +235,7 @@ def scrapeAllFencers(begin_fencerid=0):
         (fencerid, first_name, last_name, birthyear, usfa_id, gender)
         VALUES
         (%(f)s, '%(fn)s', '%(ln)s', %(b)s, %(uid)s, '%(g)s')
-      """ % {
+        """ % {
                 "f" : result["id"],
                 "fn" : result["first_name"].replace("'", "''"), #retarded sql escaping
                 "ln" : result["last_name"].replace("'", "''"), #retarded sql escaping
