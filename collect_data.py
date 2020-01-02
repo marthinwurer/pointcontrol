@@ -13,6 +13,7 @@ db = None
 conn = None
 SHALLOW_SCRAPE = False
 
+
 def isStringInt(s):
     try:
         int(s)
@@ -20,14 +21,15 @@ def isStringInt(s):
     except ValueError:
         return False
 
+
 def get_tournament_events(event_id):
-    payload = {"_api_key" : API_KEY,
-               "_per_page" : "100", # won't be more than 100 events in a tournament right?
-               "event_id" : event_id,
+    payload = {"_api_key": API_KEY,
+               "_per_page": "100",  # won't be more than 100 events in a tournament right?
+               "event_id": event_id,
                }
     r = requests.get("https://api.askfred.net/v1/roundresult", params=payload)
     if r.status_code == 500:
-        raise IOError ("Request failed with code 500. Payload: " + "https://api.askfred.net/v1/roundresult" + str(payload))
+        raise IOError("Request failed with code 500. Payload: " + "https://api.askfred.net/v1/roundresult" + str(payload))
     return r.json()
 
 
@@ -45,9 +47,9 @@ def parseEvent(event_id):
             fs = bout["fencers"]
             if len(fs) != 2:
                 continue
-            i,j = 0,1
+            i, j = 0, 1
             if fs[0]["id"] > fs[1]["id"]:
-                i,j = 1,0
+                i, j = 1, 0
             db.execute("""
                         INSERT OR IGNORE INTO bouts 
                         (boutid, eventid, fencer1id, fencer2id, score1, score2, 'type')
@@ -95,7 +97,6 @@ def parseEvent(event_id):
                                     "type" : "de",
                                 })
 
-
     event_results = get_tournament_events(event_id)
     if int(event_results["total_matched"]) > 100:
         raise Exception("more than 100 roundresult with same id, wtf. event_id = " + event_id)
@@ -112,6 +113,36 @@ def parseEvent(event_id):
                 f.write(rnd["round_type"] + " in eventid=" + str(event_id))
             for de_table in rnd["de_tables"]:
                 parseDE(de_table)
+
+
+def get_tournaments(key, page=1):
+    batch_num = 100
+    payload = {"_api_key": key,
+               "_sort": "start_date_desc",
+               "_per_page": batch_num,
+               "_page": page,
+               # "start_date_lte": end_date.isoformat().split("T")[0],
+               # "start_date_gte": begin_date.isoformat().split("T")[0],
+               }
+    r = requests.get("https://api.askfred.net/v1/tournament", params=payload)
+    rjson = r.json()
+    return rjson
+
+
+def save_tournament(tournament):
+    sql_insert = "INSERT OR IGNORE INTO tournaments (tournamentid, start_date) VALUES (%(tid)s, '%(sd)s');" % {
+        "tid": tournament["id"], "sd": tournament["start_date"]}
+    db.execute(sql_insert)
+    events = tournament.get("events", [])
+    for event in events:
+        db.execute("""INSERT OR IGNORE INTO events
+              (eventid, tournamentid, weapon)
+              VALUES
+              (%(eventid)s, %(tournamentid)s, '%(weapon)s')""" % {
+            "eventid": event["id"],
+            "tournamentid": event["tournament_id"],
+            "weapon": event["weapon"],
+        })
 
 
 def scrapeResults(begin_date, end_date):
@@ -165,6 +196,7 @@ def scrapeResults(begin_date, end_date):
             break
         i = i+1
 
+
 def scrapePromotions(begin_date, end_date):
     i = 1
     batch_num = 100
@@ -216,7 +248,6 @@ def scrapePromotions(begin_date, end_date):
         time.sleep(10)
 
 
-
 def scrapeAllFencers(begin_fencerid=0):
     i = 1
     batch_num = 100
@@ -257,13 +288,12 @@ def scrapeAllFencers(begin_fencerid=0):
         time.sleep(10)
     return
 
+
 def scrapeAllFencersUpdate():
-
-
-
     logging.debug(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone())
     maxfencerid = int(db.execute("SELECT MAX(fencerid) FROM fencers").fetchone()[0])
     scrapeAllFencers(maxfencerid)
+
 
 def main():
     logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', filename='collect.log', level=logging.DEBUG)
