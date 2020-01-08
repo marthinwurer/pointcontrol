@@ -153,7 +153,7 @@ class GetPlayers(tornado.web.RequestHandler):
                 raise
         connection.close()
 
-        players = [];
+        players = []
         for row in rows:
             player = {"name": row[1] + " " + row[2], "id": row[0]}
             players.append(player)
