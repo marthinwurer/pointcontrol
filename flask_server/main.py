@@ -22,7 +22,7 @@ def _execute(query, args):
         args = (args,)
     dbPath = "../data_for_ben.db"
     connection = sqlite3.connect(dbPath)
-    cursor= connection.cursor()
+    cursor = connection.cursor()
     cursor.execute(query, args)
     result = cursor.fetchall()
     connection.commit()

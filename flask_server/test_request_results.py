@@ -2,7 +2,10 @@ import unittest
 
 from main import *
 
-class TestREST(unittest.TestCase):
+class TestPerformance(unittest.TestCase):
+    """
+    These unit tests are just being used for performance testing while developing.
+    """
     def test_build_datapoints(self):
         names = [
             ('Harshil', 'Cherukuri'),
