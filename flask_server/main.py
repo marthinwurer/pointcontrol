@@ -1,3 +1,4 @@
+import argparse
 import itertools
 import json
 import logging
@@ -237,10 +238,19 @@ def get_fencer(first_name, last_name):
 
 
 if __name__ == '__main__':
-    db_name = sys.argv[1]
+    parser = argparse.ArgumentParser(description='Server for Pointcontrol.info')
+    parser.add_argument("--production", action="store_true", default=False,
+                        help="Run in production mode (port 80)")
+    args = parser.parse_args()
+
+    ip, port = ('127.0.0.1', 5000)
+    if args.production:
+        ip, port = ('0.0.0.0', 80)
+
+    # db_name = sys.argv[1]
     # logger = logging.getLogger()
     # logger.setLevel(logging.DEBUG)
     # handler = logging.FileHandler("server.log")
     # logger.addHandler(handler)
-    server = WSGIServer(('127.0.0.1', 5000), app)#, log=logger, error_log=logger)
+    server = WSGIServer((ip, port), app)#, log=logger, error_log=logger)
     server.serve_forever()
