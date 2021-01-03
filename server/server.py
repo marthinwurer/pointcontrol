@@ -1,3 +1,5 @@
+import logging
+
 import tornado.ioloop
 import tornado.web
 import sqlite3
@@ -5,6 +7,8 @@ import json
 import os
 import requests
 import sys
+
+from tornado.log import enable_pretty_logging
 from tornado.options import define, options
 from datetime import datetime, timedelta
 
@@ -149,7 +153,7 @@ class GetPlayers(tornado.web.RequestHandler):
                 raise
         connection.close()
 
-        players = [];
+        players = []
         for row in rows:
             player = {"name": row[1] + " " + row[2], "id": row[0]}
             players.append(player)
@@ -256,19 +260,26 @@ class IconHandler(tornado.web.RequestHandler):
             self.write(f.read())
         return self.flush() 
      
-application = tornado.web.Application([
-    (r"/", Main),
-    (r"/rate_events.html", RateEventPage),
-    (r"/get",GetRating),
-    (r"/name",GetNames),
-    (r"/translate",GetIDToName),
-    (r"/event",GetEvents),
-    (r"/rate_event",RateEvent),
-    (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": STATICPATH}),
-    (r"/favicon.ico", IconHandler),
-],debug=False)
 
 if __name__ == "__main__":
+    # set up logging
+    handler = logging.FileHandler("server.log")
+    app_log = logging.getLogger("tornado.application")
+    enable_pretty_logging()
+    app_log.addHandler(handler)
+
+    application = tornado.web.Application([
+        (r"/", Main),
+        (r"/rate_events.html", RateEventPage),
+        (r"/get", GetRating),
+        (r"/name", GetNames),
+        (r"/translate", GetIDToName),
+        (r"/event", GetEvents),
+        (r"/rate_event", RateEvent),
+        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": STATICPATH}),
+        (r"/favicon.ico", IconHandler),
+    ], debug=False)
+
     tornado.options.parse_command_line()
     loadNames()
     application.listen(sys.argv[1])
